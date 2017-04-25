@@ -22,7 +22,6 @@ char** inArray(char* array1[], int sz1, char* array2[], int sz2, int* lg) {
   {
      ans[i] = data + i * 20;
   }
-  //printf("\n");
   for (int j = 0; j < sz1; j++)
   {
     for (int i = 0; i < sz2; i++)
@@ -44,6 +43,7 @@ char** inArray(char* array1[], int sz1, char* array2[], int sz2, int* lg) {
   return ans;
 }
 
+
 int main()
 {
   char* arr1[3] = { "arp", "live", "strong" };
@@ -56,3 +56,44 @@ int main()
     printf("out : %s\n", outarray[i]);
   return 0;
 }
+/*
+Description:
+
+Given two arrays of strings a1 and a2 return a sorted array r in lexicographical order of the strings of a1 which are substrings of strings of a2.
+
+Example 1:
+
+a1 = ["arp", "live", "strong"]
+
+a2 = ["lively", "alive", "harp", "sharp", "armstrong"]
+
+returns ["arp", "live", "strong"]
+
+Example 2:
+
+a1 = ["tarp", "mice", "bull"]
+
+a2 = ["lively", "alive", "harp", "sharp", "armstrong"]
+
+returns []
+*/
+
+/*
+// sz1: size of array1, sz2: size of array2, lg: size of the returned array
+char** inArray(char* array1[], int sz1, char* array2[], int sz2, int* lg) {
+    char** result = (char **) malloc(0 * sizeof(char *));
+    int cnt = 0;
+    for (int i = 0; i < sz1; i++) {
+        for (int j = 0; j < sz2; j++) {
+            if (strstr(array2[j], array1[i])) {
+                result = (char **) realloc(result, (cnt + 1) * sizeof(char *));
+                result[cnt] = array1[i];
+                cnt++;
+                break;
+            }
+        }
+    }
+    *lg = cnt;
+    qsort(result, cnt, sizeof(const char *), cmp);
+    return result;
+}*/
