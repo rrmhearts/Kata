@@ -15,9 +15,9 @@ long double factorial(int n) {
 	return fac;
 }
 
-long double factorial(int n, int low) {
+long double factorial_div(int n, int low) {
 	long double fac = 1;
-	for (int i = low; i <= n; i++)
+	for (int i = low+1; i <= n; i++)
 		fac *= i;
 	return fac;
 }
@@ -26,13 +26,13 @@ double going(int n) {
 	//printf("N: %d\n", n);
 	long double sum = 0;
 	for (int i = 1; i <= n; i++)
-		sum += factorial(i);
+		sum += 1/ factorial_div(n, i);
 	printf("%Lf\n", sum);
-	return (double)(sum / factorial(n) * 1000000)/1000000;
+	return (double)(sum * 1000000)/1000000;
 }
 
 int main()
 {
-	printf("%f\n", going(1000));
+	printf("%f\n", going(4000));
 	return 0;
 }
