@@ -36,7 +36,6 @@ Pair** listSquared(long long m, long long n, int* length) {
         
         if (isPerfectSquare(sum) )
         {
-            printf("sum: %llu\n", sum);
             if (ans == 0)
                ans = malloc( ++llen * sizeof(*ans) );
             else
