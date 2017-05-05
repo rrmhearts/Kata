@@ -62,8 +62,8 @@ long long* step(int g, long long m, long long n) {
         {
             match++;
         }
-        // Found a match return it
-        if (firstV == primes[match] +g)
+        // Found a match return it     // This comment is the prime gap solution
+        if (firstV == primes[match] +g /* && firstV == primes[match+1]  */)
         {
           answer[0] = primes[match];
           answer[1] = firstV;
