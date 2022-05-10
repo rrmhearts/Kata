@@ -33,19 +33,19 @@ def updateDict(keys, goset, puzzle):
             puzzle[each[0]][each[1]] = dict[each].pop()
 
 def threeByThree(puzzle, fi, fj):
-    for i in range(3*(fi//3),len(puzzle) if not fi else fi+1,3):
-        for j in range(3*(fj//3),len(puzzle[i]) if not fi else fi+1,3):
-            items = allset - {
-                puzzle[i][j],   puzzle[i][j+1],   puzzle[i][j+2],
-                puzzle[i+1][j], puzzle[i+1][j+1], puzzle[i+1][j+2],
-                puzzle[i+2][j], puzzle[i+2][j+1], puzzle[i][j+2]
-            }
-            updateDict([(x,y) for x,y in \
-                        [(i,j),(i,j+1),(i,j+2),
-                         (i+1,j),(i+1,j+1),(i+1,j+2),
-                         (i+2,j),(i+2,j+1),(i+2,j+2)]
-                         if puzzle[x][y] == 0 
-                    ], items, puzzle)
+    i = 3*(fi//3)
+    j = 3*(fj//3)
+    items = allset - {
+        puzzle[i][j],   puzzle[i][j+1],   puzzle[i][j+2],
+        puzzle[i+1][j], puzzle[i+1][j+1], puzzle[i+1][j+2],
+        puzzle[i+2][j], puzzle[i+2][j+1], puzzle[i][j+2]
+    }
+    updateDict([(x,y) for x,y in \
+                [(i,j),(i,j+1),(i,j+2),
+                    (i+1,j),(i+1,j+1),(i+1,j+2),
+                    (i+2,j),(i+2,j+1),(i+2,j+2)]
+                    if puzzle[x][y] == 0 
+            ], items, puzzle)
     return puzzle
 
 def colRow(puzzle, fi, fj):
