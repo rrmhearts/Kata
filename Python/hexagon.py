@@ -19,22 +19,40 @@ def compare(center, noon_2468_10):
     eight = noon_2468_10[4]
     ten   = noon_2468_10[5]
 
-    noon_sat = (noon[0] == center[3] and noon[1] == ten[4] and noon[5] == two[2])
-    two_sat = two[0] == four[3] and two[1] == center[4] #and two[2] == noon[5]
-    four_sat = four[1] == six[4] and four[2] == center[5] #and four[3] == two[0]
-    six_sat = six[2] == eight[5] and six[3] == center[0] #and six[4] == four[1]
-    eight_sat = eight[3] == ten[0] and eight[4] == center[1] #and eight[5] == six[2]
-    ten_sat = ten[0] == eight[3] and ten[5] == center[2] #and ten[4] == noon[1]
+    noon_sat = (noon[0] == center[3] and noon[5] == ten[2] and noon[1] == two[4])
+    two_sat = two[0] == four[3] and two[5] == center[4] #and two[2] == noon[5]
+    four_sat = four[5] == six[2] and four[4] == center[1] #and four[3] == two[0]
+    six_sat = six[4] == eight[1] and six[3] == center[0] #and six[4] == four[1]
+    eight_sat = eight[3] == ten[0] and eight[2] == center[5] #and eight[5] == six[2]
+    ten_sat = ten[0] == eight[3] and ten[1] == center[4] #and ten[4] == noon[1]
+
+    if noon_sat and two_sat and four_sat and six_sat and eight_sat and ten_sat:
+        print(center)
+        print(noon_2468_10)
 
     return noon_sat and two_sat and four_sat and six_sat and eight_sat and ten_sat
 
 def generate_rotations(wheels):
-    for i in range(len(wheels)):
+    new_wheels = []
+    for i in range(6):
         for j in range(6):
-            yield i, j
+            for k in range(6):
+                for l in range(6):
+                    for m in range(6):
+                        for n in range(6):
+                            for o in range(6):
+                                yield [
+                                    rotate(wheels[0], i),
+                                    rotate(wheels[1], j),
+                                    rotate(wheels[2], k),
+                                    rotate(wheels[3], l),
+                                    rotate(wheels[4], m),
+                                    rotate(wheels[5], n),
+                                    rotate(wheels[6], o)
+                                ]
 
 if __name__ == '__main__':
-    wheels = [
+    wheels_original = [
         [1,3,5,4,2,6],
         [1,2,3,4,5,6],
         [1,3,5,2,4,6],
@@ -43,18 +61,14 @@ if __name__ == '__main__':
         [1,4,2,3,5,6],
         [1,5,3,2,6,4]
     ]
-    hashes = []
-    with open('hashes.pickle',"rb") as hs:
-        hashes = pickle.load(hs)
-
     
-    unfinished = True
-    while (unfinished):
+    for wheels in generate_rotations(wheels_original):
 
-        while (hash(str(wheels)) in hashes):
-            rot_el = random.randint(0, len(wheels)-1)
-            wheels[rot_el] = rotate(wheels[rot_el], 1)
-        hashes.append( hash(str(wheels)) )
+        # while (hash(str(wheels)) in hashes):
+        #     rot_el = random.randint(0, len(wheels)-1)
+        #     wheels[rot_el] = rotate(wheels[rot_el], 1)
+        # hashes.append( hash(str(wheels)) )
+        # wheels[wheel] = rotate(wheels[wheel], 1)
 
         for i, center in enumerate(wheels):
             outside_els = list(skip_i(wheels, i))
@@ -65,11 +79,9 @@ if __name__ == '__main__':
                     print("noon_around:", outside_els)
                     unfinished = False
                     exit()
-        with open('hashes.pickle', 'wb') as hs:
-            pickle.dump(hashes, hs)
         # print(center, f"lenght outside: {len(outside_els)}")
         # print("      ", outside_els)
-
+    print("finsihed?")
 # pick one to be the center, 
 
 # for center in wheels:
