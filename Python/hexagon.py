@@ -20,7 +20,7 @@ def compare(center, noon_2468_10):
     ten   = noon_2468_10[5]
 
     noon_sat = (noon[0] == center[3] and noon[5] == ten[2] and noon[1] == two[4])
-    two_sat = two[0] == four[3] and two[5] == center[4] #and two[2] == noon[5]
+    two_sat = two[0] == four[3] and two[5] == center[2] #and two[2] == noon[5]
     four_sat = four[5] == six[2] and four[4] == center[1] #and four[3] == two[0]
     six_sat = six[4] == eight[1] and six[3] == center[0] #and six[4] == four[1]
     eight_sat = eight[3] == ten[0] and eight[2] == center[5] #and eight[5] == six[2]
@@ -61,6 +61,12 @@ if __name__ == '__main__':
         [1,4,2,3,5,6],
         [1,5,3,2,6,4]
     ]
+
+    #    try:
+    #     with open('hashes.pickle',"rb") as hs:
+    #         hashes = pickle.load(hs)
+    # except Exception:
+    #     hashes = []
     
     for wheels in generate_rotations(wheels_original):
 
