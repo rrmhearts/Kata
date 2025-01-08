@@ -1,51 +1,36 @@
 import networkx as nx
 import itertools
 
-def invertSave(pos, newPos, first):
-    # return None
-    try:
-        pos[list(pos.keys())[list(pos.values()).index(newPos)]] = pos[first]
-    except ValueError:
-        pass
-    pos[first] = newPos
-
-def constraintMet(pos, first, second, relation):
+def constraintUpdate(pos, first, second, relation):
 
     fx, fy = pos[first]
     sx, sy = pos[second]
-    if relation == 'above-right':
-        if fx > sx and fy < sy:
-            return True
-        # newPos = (pos[second][0] + 1, pos[second][1] - 1)
-    elif relation == 'below-right':
-        if fx > sx and fy > sy:
-            return True
-        # newPos = (pos[second][0] + 1, pos[second][1] + 1)
-    elif relation == 'above-left':
-        if fx < sx and fy < sy:
-            return True
-        # newPos = (pos[second][0] - 1, pos[second][1] - 1)
-    elif relation == 'below-left':
-        if fx < sx and fy > sy:
-            return True
-        # newPos = (pos[second][0] - 1, pos[second][1] + 1)
-    elif relation == 'left':
-        if fx < sx:
-            return True
-        # newPos = (pos[second][0] - 1, pos[second][1])
-    elif relation == 'right':
-        if fx > sx:
-            return True
-        # newPos = (pos[second][0] + 1, pos[second][1])
-    elif relation == 'above':
-        if fy < sy:
-            return True
-        # newPos = (pos[second][0], pos[second][1] - 1)
-    elif relation == 'below':
-        if fy > sy:
-            return True
-        # newPos = (pos[second][0], pos[second][1] + 1)
-    return False
+    newPos = None 
+    if relation == 'above-right' and (fx < sx or fy > sy):
+        newPos = (pos[second][0] + 1, pos[second][1] - 1)
+    elif relation == 'below-right' and (fx < sx or fy < sy):
+        newPos = (pos[second][0] + 1, pos[second][1] + 1)
+    elif relation == 'above-left' and (fx > sx or fy > sy):
+        newPos = (pos[second][0] - 1, pos[second][1] - 1)
+    elif relation == 'below-left' and (fx > sx or fy < sy):
+        newPos = (pos[second][0] - 1, pos[second][1] + 1)
+    elif relation == 'left' and fx > sx:
+        newPos = (pos[second][0] - 1, pos[second][1])
+    elif relation == 'right' and fx < sx:
+        newPos = (pos[second][0] + 1, pos[second][1])
+    elif relation == 'above' and fy > sy:
+        newPos = (pos[second][0], pos[second][1] - 1)
+    elif relation == 'below' and fy < sy:
+        newPos = (pos[second][0], pos[second][1] + 1)
+    else: #if newPos == ():
+        return
+
+    try: # this magic prevents elements from being overwritten in the graph
+        pos[list(pos.keys())[list(pos.values()).index(newPos)]] = pos[first]
+    except ValueError:
+        pass
+    # update element
+    pos[first] = newPos
 
 def create_text_grid(triples):
     """
@@ -74,30 +59,8 @@ def create_text_grid(triples):
         # print(pos)
         for obj1, obj2, data in G.edges(data=True):
             first, second = obj1, obj2
-            if data['relation'] == 'above-right' and not constraintMet(pos, first, second, data['relation']):
-                newPos = (pos[second][0] + 1, pos[second][1] - 1)
-                invertSave(pos, newPos, first)
-            elif data['relation'] == 'below-right' and not constraintMet(pos, first, second, data['relation']):
-                newPos = (pos[second][0] + 1, pos[second][1] + 1)
-                invertSave(pos, newPos, first)
-            elif data['relation'] == 'above-left' and not constraintMet(pos, first, second, data['relation']):
-                newPos = (pos[second][0] - 1, pos[second][1] - 1)
-                invertSave(pos, newPos, first)
-            elif data['relation'] == 'below-left' and not constraintMet(pos, first, second, data['relation']):
-                newPos = (pos[second][0] - 1, pos[second][1] + 1)
-                invertSave(pos, newPos, first)
-            elif data['relation'] == 'left' and not constraintMet(pos, first, second, data['relation']):
-                newPos = (pos[second][0] - 1, pos[second][1])
-                invertSave(pos, newPos, first)
-            elif data['relation'] == 'right' and not constraintMet(pos, first, second, data['relation']):
-                newPos = (pos[second][0] + 1, pos[second][1])
-                invertSave(pos, newPos, first)
-            elif data['relation'] == 'above' and not constraintMet(pos, first, second, data['relation']):
-                newPos = (pos[second][0], pos[second][1] - 1)
-                invertSave(pos, newPos, first)
-            elif data['relation'] == 'below' and not constraintMet(pos, first, second, data['relation']):
-                newPos = (pos[second][0], pos[second][1] + 1)
-                invertSave(pos, newPos, first)
+            print(pos[first], first)
+            constraintUpdate(pos, first, second, data['relation'])
     print(pos)
     # for v in pos.values():
     #     if v == (-1,0):
