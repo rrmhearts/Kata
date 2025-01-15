@@ -4,9 +4,14 @@ import itertools
 def invertSave(pos, newPos, first):
     # return None
     try:
-        pos[list(pos.keys())[list(pos.values()).index(newPos)]] = pos[first]
+        if list(pos.keys())[list(pos.values()).index(newPos)]:
+            # something lives in the new position already!
+
+        # print(pos)
+            pos[list(pos.keys())[list(pos.values()).index(newPos)]] = pos[first]
+        # print(pos[list(pos.keys())[list(pos.values()).index(newPos)]], newPos)
     except ValueError:
-        pass
+        pass #print("ValueError?")
     pos[first] = newPos
 
 def constraintMet(pos, first, second, relation):
@@ -127,8 +132,11 @@ def create_text_grid(triples):
 
 # Example usage
 triples = [
-    ('A', 'left', 'B'),
+    ('A', 'left', 'B'), # A is left of B.
+    ('G', 'left', 'C'),
     ('B', 'left', 'C'),
+    ('B', 'left', 'U'),
+    ('U', 'above-right', 'Y'),
     ('Z', 'above', 'B'),
     ('X', 'below', 'C'),
     ('Y', 'below-right', 'C'),
@@ -136,8 +144,7 @@ triples = [
     ('H', 'below-left', 'B'),
     ('U', 'right', 'B'),
     ('U', 'right', 'C'),
-    ('B', 'left', 'U'),
-    ('F', 'right', 'C')
+    ('F', 'right', 'C'),
 ]
 
 text_grid = create_text_grid(triples)
