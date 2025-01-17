@@ -2,32 +2,33 @@ import networkx as nx
 import itertools
 from functools import reduce
 
-def deconflict_Save(pos, newPos, first):
-    # return None
+def deconflict_save(pos, newPos, first):
     try:
         pos[list(pos.keys())[list(pos.values()).index(newPos)]] = pos[first]
-        # ox, oy = first
-        sx, _ = newPos
-        # dx, dy = abs(ox-sx), abs(oy-sy)
+        ox, oy = first
+        sx, sy = newPos
+        dx, dy = sx-ox, sy-oy
         for k, v in pos.items():
             x, y = v
-            if x >= sx:
+            if x >= sx and dx > 0:
                 pos[k] = (x+1, y)
-            # if y > sy:
-            #     pos[k] = (x, y+1)
+            if y > sy and dy > 0:
+                pos[k] = (x, y+1)
     except ValueError:
         pass
     pos[first] = newPos
 
-# def corner_reducer(acc, triple):
-#     lookup = []
-#     if "-" in triple[1]:
-#         # Replace the triple with two new triples
-#         acc.extend((triple[0], rel, triple[2]) for rel in triple[1].split("-"))
-#     else:
-#         # Keep the original triple
-#         acc.append(triple)
-#     return acc
+def remove_repeat_predicates(triples):
+    lookup, removal = [], []
+    for t in triples:
+        if t[1:] in lookup:
+            removal.append(t) #print(t, "repeated")
+        else:
+            lookup.append(t[1:])
+    if removal:
+        print("WARNING: Removed ", ", ".join(str(r) for r in removal))
+        for r in removal:
+            triples.remove(r)
     
 def create_text_grid(triples):
     """
@@ -41,11 +42,6 @@ def create_text_grid(triples):
     Returns:
         A string representing the text-based spatial grid.
     """
-
-    # triples remove doubles
-    # print("before", triples)
-    # triples = reduce(corner_reducer, triples, [])
-    # print("after", triples)
     G = nx.DiGraph()
 
     # Add nodes and edges to the graph
@@ -64,31 +60,28 @@ def create_text_grid(triples):
             sx, sy = pos[second]
             if data['relation'] == 'above-right' and not (fx > sx and fy < sy):
                 newPos = (pos[second][0] + 1, pos[second][1] - 1)
-                deconflict_Save(pos, newPos, first)
+                deconflict_save(pos, newPos, first)
             elif data['relation'] == 'below-right' and not (fx > sx and fy > sy):
                 newPos = (pos[second][0] + 1, pos[second][1] + 1)
-                deconflict_Save(pos, newPos, first)
+                deconflict_save(pos, newPos, first)
             elif data['relation'] == 'above-left' and not (fx < sx and fy < sy):
                 newPos = (pos[second][0] - 1, pos[second][1] - 1)
-                deconflict_Save(pos, newPos, first)
+                deconflict_save(pos, newPos, first)
             elif data['relation'] == 'below-left' and not (fx < sx and fy > sy):
                 newPos = (pos[second][0] - 1, pos[second][1] + 1)
-                deconflict_Save(pos, newPos, first)
+                deconflict_save(pos, newPos, first)
             elif data['relation'] == 'left' and not (fx < sx):
                 newPos = (pos[second][0] - 1, pos[second][1])
-                deconflict_Save(pos, newPos, first)
+                deconflict_save(pos, newPos, first)
             elif data['relation'] == 'right' and not (fx > sx):
                 newPos = (pos[second][0] + 1, pos[second][1])
-                deconflict_Save(pos, newPos, first)
+                deconflict_save(pos, newPos, first)
             elif data['relation'] == 'above' and not (fy < sy):
                 newPos = (pos[second][0], pos[second][1] - 1)
-                deconflict_Save(pos, newPos, first)
+                deconflict_save(pos, newPos, first)
             elif data['relation'] == 'below' and not (fy > sy):
                 newPos = (pos[second][0], pos[second][1] + 1)
-                deconflict_Save(pos, newPos, first)
-    # for v in pos.values():
-    #     if v == (-1,0):
-    #         print(v)
+                deconflict_save(pos, newPos, first)
     # for a, b in itertools.combinations(pos.values(), 2):
     #     if a == b:
     #         print(a)
