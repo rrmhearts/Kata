@@ -1,52 +1,34 @@
 import networkx as nx
 import itertools
+from functools import reduce
 
-def invertSave(pos, newPos, first):
+def deconflict_Save(pos, newPos, first):
     # return None
     try:
         pos[list(pos.keys())[list(pos.values()).index(newPos)]] = pos[first]
+        # ox, oy = first
+        sx, _ = newPos
+        # dx, dy = abs(ox-sx), abs(oy-sy)
+        for k, v in pos.items():
+            x, y = v
+            if x >= sx:
+                pos[k] = (x+1, y)
+            # if y > sy:
+            #     pos[k] = (x, y+1)
     except ValueError:
         pass
     pos[first] = newPos
 
-def constraintMet(pos, first, second, relation):
-
-    fx, fy = pos[first]
-    sx, sy = pos[second]
-    if relation == 'above-right':
-        if fx > sx and fy < sy:
-            return True
-        # newPos = (pos[second][0] + 1, pos[second][1] - 1)
-    elif relation == 'below-right':
-        if fx > sx and fy > sy:
-            return True
-        # newPos = (pos[second][0] + 1, pos[second][1] + 1)
-    elif relation == 'above-left':
-        if fx < sx and fy < sy:
-            return True
-        # newPos = (pos[second][0] - 1, pos[second][1] - 1)
-    elif relation == 'below-left':
-        if fx < sx and fy > sy:
-            return True
-        # newPos = (pos[second][0] - 1, pos[second][1] + 1)
-    elif relation == 'left':
-        if fx < sx:
-            return True
-        # newPos = (pos[second][0] - 1, pos[second][1])
-    elif relation == 'right':
-        if fx > sx:
-            return True
-        # newPos = (pos[second][0] + 1, pos[second][1])
-    elif relation == 'above':
-        if fy < sy:
-            return True
-        # newPos = (pos[second][0], pos[second][1] - 1)
-    elif relation == 'below':
-        if fy > sy:
-            return True
-        # newPos = (pos[second][0], pos[second][1] + 1)
-    return False
-
+# def corner_reducer(acc, triple):
+#     lookup = []
+#     if "-" in triple[1]:
+#         # Replace the triple with two new triples
+#         acc.extend((triple[0], rel, triple[2]) for rel in triple[1].split("-"))
+#     else:
+#         # Keep the original triple
+#         acc.append(triple)
+#     return acc
+    
 def create_text_grid(triples):
     """
     Creates a text-based spatial representation from a list of triples.
@@ -60,6 +42,10 @@ def create_text_grid(triples):
         A string representing the text-based spatial grid.
     """
 
+    # triples remove doubles
+    # print("before", triples)
+    # triples = reduce(corner_reducer, triples, [])
+    # print("after", triples)
     G = nx.DiGraph()
 
     # Add nodes and edges to the graph
@@ -74,31 +60,32 @@ def create_text_grid(triples):
         # print(pos)
         for obj1, obj2, data in G.edges(data=True):
             first, second = obj1, obj2
-            if data['relation'] == 'above-right' and not constraintMet(pos, first, second, data['relation']):
+            fx, fy = pos[first]
+            sx, sy = pos[second]
+            if data['relation'] == 'above-right' and not (fx > sx and fy < sy):
                 newPos = (pos[second][0] + 1, pos[second][1] - 1)
-                invertSave(pos, newPos, first)
-            elif data['relation'] == 'below-right' and not constraintMet(pos, first, second, data['relation']):
+                deconflict_Save(pos, newPos, first)
+            elif data['relation'] == 'below-right' and not (fx > sx and fy > sy):
                 newPos = (pos[second][0] + 1, pos[second][1] + 1)
-                invertSave(pos, newPos, first)
-            elif data['relation'] == 'above-left' and not constraintMet(pos, first, second, data['relation']):
+                deconflict_Save(pos, newPos, first)
+            elif data['relation'] == 'above-left' and not (fx < sx and fy < sy):
                 newPos = (pos[second][0] - 1, pos[second][1] - 1)
-                invertSave(pos, newPos, first)
-            elif data['relation'] == 'below-left' and not constraintMet(pos, first, second, data['relation']):
+                deconflict_Save(pos, newPos, first)
+            elif data['relation'] == 'below-left' and not (fx < sx and fy > sy):
                 newPos = (pos[second][0] - 1, pos[second][1] + 1)
-                invertSave(pos, newPos, first)
-            elif data['relation'] == 'left' and not constraintMet(pos, first, second, data['relation']):
+                deconflict_Save(pos, newPos, first)
+            elif data['relation'] == 'left' and not (fx < sx):
                 newPos = (pos[second][0] - 1, pos[second][1])
-                invertSave(pos, newPos, first)
-            elif data['relation'] == 'right' and not constraintMet(pos, first, second, data['relation']):
+                deconflict_Save(pos, newPos, first)
+            elif data['relation'] == 'right' and not (fx > sx):
                 newPos = (pos[second][0] + 1, pos[second][1])
-                invertSave(pos, newPos, first)
-            elif data['relation'] == 'above' and not constraintMet(pos, first, second, data['relation']):
+                deconflict_Save(pos, newPos, first)
+            elif data['relation'] == 'above' and not (fy < sy):
                 newPos = (pos[second][0], pos[second][1] - 1)
-                invertSave(pos, newPos, first)
-            elif data['relation'] == 'below' and not constraintMet(pos, first, second, data['relation']):
+                deconflict_Save(pos, newPos, first)
+            elif data['relation'] == 'below' and not (fy > sy):
                 newPos = (pos[second][0], pos[second][1] + 1)
-                invertSave(pos, newPos, first)
-    print(pos)
+                deconflict_Save(pos, newPos, first)
     # for v in pos.values():
     #     if v == (-1,0):
     #         print(v)
@@ -106,6 +93,7 @@ def create_text_grid(triples):
     #     if a == b:
     #         print(a)
     # print(pos.items())
+
     # Find the grid dimensions
     min_x = min(x for x, _ in pos.values())
     max_x = max(x for x, _ in pos.values())
@@ -120,9 +108,9 @@ def create_text_grid(triples):
         grid[y - min_y][x - min_x] = node
 
     # Create the text representation
-    text_grid = '\n'.join([''.join(row) for row in grid])
+    text_grid = '\n'.join([''.join(row) for row in grid if "".join(row).strip() != ""])
 
-    print(grid)
+    # print(grid)
     return text_grid
 
 # Example usage
@@ -130,15 +118,22 @@ triples = [
     ('A', 'left', 'B'),
     ('B', 'left', 'C'),
     ('Z', 'above', 'B'),
-    ('X', 'below', 'C'),
+    # ('X', 'below', 'C'), # repeated commands are disliked
     ('Y', 'below-right', 'C'),
     ('R', 'right', 'A'),
     ('H', 'below-left', 'B'),
     ('U', 'right', 'B'),
     ('U', 'right', 'C'),
     ('B', 'left', 'U'),
-    ('F', 'right', 'C')
+    ('F', 'right', 'C'),
+    ('D', 'left', 'C'), # breaks it, works for now
+    ('P', 'below', 'C'),
+    ('X', 'below', 'P'), # breaks it, works for now
+    ('G', 'left', 'D'),
+    ('G', 'right', 'A')
 ]
+
+# repeated (_,rel,Obj) need to be axed.
 
 text_grid = create_text_grid(triples)
 print(text_grid)
