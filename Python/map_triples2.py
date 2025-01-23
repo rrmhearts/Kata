@@ -18,15 +18,17 @@ def deconflict_save(pos, newPos, first):
         pass
     pos[first] = newPos
 
-def remove_repeat_predicates(triples):
+def remove_repeat_predicates(triples, warn_only=True):
     lookup, removal = [], []
     for t in triples:
         if t[1:] in lookup:
             removal.append(t) #print(t, "repeated")
         else:
             lookup.append(t[1:])
-    if removal:
-        print("WARNING: Removed ", ", ".join(str(r) for r in removal))
+    if removal and warn_only:
+        print("WARNING: ", ", ".join(str(r) for r in removal), "duplicated\n")
+    if removal and not warn_only:
+        print("WARNING: removed", ", ".join(str(r) for r in removal), "\n")
         for r in removal:
             triples.remove(r)
     
@@ -118,7 +120,7 @@ triples = [
     ('U', 'right', 'B'),
     ('U', 'right', 'C'),
     ('B', 'left', 'U'),
-    ('F', 'right', 'C'),
+    # ('F', 'right', 'C'),
     ('D', 'left', 'C'), # breaks it, works for now
     ('P', 'below', 'C'),
     ('X', 'below', 'P'), # breaks it, works for now
@@ -127,6 +129,7 @@ triples = [
 ]
 
 # repeated (_,rel,Obj) need to be axed.
+remove_repeat_predicates(triples=triples, warn_only=True)
 
 text_grid = create_text_grid(triples)
 print(text_grid)
