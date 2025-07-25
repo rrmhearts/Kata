@@ -16,6 +16,57 @@ use std::{
 
 type Storage = Arc<Mutex<HashMap<String, Vec<u8>>>>;
 
+fn linear_to_mulaw(sample: i16) -> u8 {
+    const MU: i16 = 255;
+    let sign = if sample < 0 { 0x80 } else { 0x00 };
+    let magnitude = (sample.abs() as i32).min(0x7FFF) >> 2;
+
+    let exponent = ((magnitude >> 7) & 0x0F) as u8;
+    let mantissa = ((magnitude >> (exponent + 3)) & 0x0F) as u8;
+
+    !(sign | (exponent << 4) | mantissa)
+}
+
+fn write_mulaw_wav(samples: &[i16], sample_rate: u32, channels: u16) -> Vec<u8> {
+    let mut data: Vec<u8> = Vec::new();
+
+    // Encode samples
+    let encoded: Vec<u8> = samples.iter().map(|s| linear_to_mulaw(*s)).collect();
+
+    let num_samples = encoded.len() as u32;
+    let block_align = channels;
+    let byte_rate = sample_rate * block_align as u32;
+
+    // Write RIFF header
+    let mut buffer = Cursor::new(Vec::new());
+
+    let data_chunk_size = num_samples;
+    let fmt_chunk_size = 18u32;
+    let total_size = 4 + (8 + fmt_chunk_size) + (8 + data_chunk_size);
+
+    buffer.write_all(b"RIFF").unwrap();
+    buffer.write_all(&(total_size as u32).to_le_bytes()).unwrap();
+    buffer.write_all(b"WAVE").unwrap();
+
+    // fmt chunk
+    buffer.write_all(b"fmt ").unwrap();
+    buffer.write_all(&fmt_chunk_size.to_le_bytes()).unwrap(); // chunk size
+    buffer.write_all(&7u16.to_le_bytes()).unwrap(); // format code 7 = µ-law
+    buffer.write_all(&channels.to_le_bytes()).unwrap();
+    buffer.write_all(&sample_rate.to_le_bytes()).unwrap();
+    buffer.write_all(&byte_rate.to_le_bytes()).unwrap();
+    buffer.write_all(&block_align.to_le_bytes()).unwrap();
+    buffer.write_all(&8u16.to_le_bytes()).unwrap(); // bits per sample
+    buffer.write_all(&0u16.to_le_bytes()).unwrap(); // extra bytes
+
+    // data chunk
+    buffer.write_all(b"data").unwrap();
+    buffer.write_all(&(data_chunk_size as u32).to_le_bytes()).unwrap();
+    buffer.write_all(&encoded).unwrap();
+
+    buffer.into_inner()
+}
+
 #[tokio::main]
 async fn main() {
     let storage: Storage = Arc::new(Mutex::new(HashMap::new()));
@@ -56,7 +107,7 @@ async fn download(Path(name): Path<String>, state: axum::extract::State<Storage>
         Response::builder()
             .header("Content-Type", "audio/wav")
             .header("Content-Disposition", format!("attachment; filename=\"{}\"", name))
-            .body(Bytes::from(data.clone()))
+            .body(axum::body::Body::from(data.clone()))
             .unwrap()
     } else {
         (StatusCode::NOT_FOUND, "File not found").into_response()
@@ -120,8 +171,17 @@ async fn resample(
 }
 
 #[derive(serde::Deserialize)]
+#[serde(rename_all = "lowercase")]
+enum TargetFormat {
+    Pcm8,
+    Pcm16,
+    Pcm24,
+    Mulaw8,
+}
+
+#[derive(serde::Deserialize)]
 struct FormatConversionParams {
-    bits_per_sample: u16, // e.g. 8, 16, or 24
+    format: TargetFormat,
 }
 
 async fn convert_format(
@@ -136,48 +196,61 @@ async fn convert_format(
         None => return (StatusCode::NOT_FOUND, "File not found").into_response(),
     };
 
-    let reader = WavReader::new(Cursor::new(&original));
-    if reader.is_err() {
-        return (StatusCode::BAD_REQUEST, "Invalid WAV file").into_response();
-    }
+    let mut reader = match WavReader::new(Cursor::new(&original)) {
+        Ok(r) => r,
+        Err(_) => return (StatusCode::BAD_REQUEST, "Invalid WAV file").into_response(),
+    };
 
-    let mut reader = reader.unwrap();
     let spec = reader.spec();
+    let samples: Vec<i16> = reader.samples::<i16>().filter_map(Result::ok).collect();
 
-    let samples: Vec<i16> = reader.samples::<i16>().map(|s| s.unwrap()).collect();
+    let (bits, mut write_sample): (u16, Box<dyn FnMut(&mut WavWriter<&mut Cursor<Vec<u8>>>, i16) -> Result<(), hound::Error>>) = match params.format {
+        TargetFormat::Pcm8 => (
+            8,
+            Box::new(|w, s| {
+                let sample = (((s as i32 + 32768) >> 8) & 0xFF) as u8;
+                w.write_sample(sample)
+            }),
+        ),
+        TargetFormat::Pcm16 => (
+            16,
+            Box::new(|w, s| w.write_sample(s)),
+        ),
+        TargetFormat::Pcm24 => (
+            24,
+            Box::new(|w, s| {
+                let s_24 = (s as i32) << 8;
+                w.write_sample(s_24)
+            }),
+        ),
+        TargetFormat::Mulaw8 => {
+            let raw = write_mulaw_wav(&samples, spec.sample_rate, spec.channels);
+            files.insert(name.clone(), raw);
+            return Response::builder()
+                .status(200)
+                .body("Converted to µ-law".into())
+                .unwrap();
+        }
+
+        // TargetFormat::Mulaw8 => (
+        //     8,
+        //     Box::new(|w, s| w.write_sample(linear_to_mulaw(s))),
+        // ),
+    };
 
     let new_spec = WavSpec {
         channels: spec.channels,
         sample_rate: spec.sample_rate,
-        bits_per_sample: params.bits_per_sample,
+        bits_per_sample: bits,
         sample_format: hound::SampleFormat::Int,
     };
 
     let mut buffer = Cursor::new(Vec::new());
-
     {
         let mut writer = WavWriter::new(&mut buffer, new_spec).unwrap();
-
-        // Bit-depth conversion (naive: truncate/scale to 8/24-bit)
-        for s in samples.iter() {
-            match params.bits_per_sample {
-                8 => {
-                    let scaled = ((*s as f32 + 32768.0) / 256.0) as u8;
-                    writer.write_sample(scaled).unwrap();
-                }
-                16 => {
-                    writer.write_sample(*s).unwrap();
-                }
-                24 => {
-                    let scaled = (*s as i32) << 8;
-                    writer.write_sample(scaled).unwrap();
-                }
-                _ => {
-                    return (StatusCode::BAD_REQUEST, "Unsupported bit depth").into_response();
-                }
-            }
+        for s in &samples {
+            write_sample(&mut writer, *s).unwrap();
         }
-
         writer.finalize().unwrap();
     }
 

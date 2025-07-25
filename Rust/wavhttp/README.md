@@ -21,4 +21,13 @@ curl -X POST http://localhost:8080/volume/myfile.wav \
   -H "Content-Type: application/json" \
   -d '{"factor":0.5}'
 
+# Convert a WAV to 8-bit µ-law
+curl -X POST http://localhost:8080/convert/myfile.wav \
+  -H "Content-Type: application/json" \
+  -d '{"format":"mulaw8"}'
+# Convert to 24-bit PCM
+curl -X POST http://localhost:8080/convert/myfile.wav \
+  -H "Content-Type: application/json" \
+  -d '{"format":"pcm24"}'
+
 ```

@@ -4,10 +4,10 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-axum = "0.7"
+axum = { version = "0.7", features = ["multipart"] }
 tokio = { version = "1", features = ["full"] }
 tower = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 bytes = "1.5"
-hound = "3.5"        # For reading/writing WAV files
+hound = "3.5"
