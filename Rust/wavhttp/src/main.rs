@@ -4,10 +4,13 @@ use axum::{
     response::{IntoResponse, Response},
     routing::{get, post},
     Json, Router,
-};use std::io::{Cursor, Write};
+};
+use std::io::{Cursor, Write};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use hound::{WavReader, WavWriter, WavSpec, SampleFormat};
+use std::net::SocketAddr;
+use tokio::net::TcpListener; // Import TcpListener
 
 type Storage = Arc<Mutex<HashMap<String, Vec<u8>>>>;
 
@@ -49,7 +52,7 @@ fn linear_to_mulaw(sample: i16) -> u8 {
         }
     }
 
-    let mantissa = ( (sample >> (exponent + 3)) & 0x0F) as u8;
+    let mantissa = ((sample >> (exponent + 3)) & 0x0F) as u8;
     !(sign | (exponent << 4) | mantissa)
 }
 
@@ -94,17 +97,19 @@ async fn main() {
         .route("/upload/:name", post(upload))
         .route("/download/:name", get(download))
         .route("/resample/:name", post(resample))
-        .route("/convert/:name", post(convert_format))   // NEW
-        .route("/volume/:name", post(adjust_volume))     // NEW
+        .route("/convert/:name", post(convert_format))
+        .route("/volume/:name", post(adjust_volume))
         .with_state(storage.clone());
 
-
     let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
+
+    // Create a TcpListener
+    let listener = TcpListener::bind(&addr).await.unwrap();
+
     println!("Server listening on http://{}", addr);
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
+
+    // Use axum::serve with the listener and the app
+    axum::serve(listener, app).await.unwrap();
 }
 
 async fn upload(
@@ -187,15 +192,6 @@ async fn resample(
         .status(200)
         .body("Resampled successfully".into())
         .unwrap()
-}
-
-#[derive(serde::Deserialize)]
-#[serde(rename_all = "lowercase")]
-enum TargetFormat {
-    Pcm8,
-    Pcm16,
-    // Pcm24,
-    Mulaw8,
 }
 
 #[derive(serde::Deserialize)]
@@ -334,4 +330,3 @@ async fn adjust_volume(
         .body("Volume adjusted".into())
         .unwrap()
 }
-
