@@ -8,6 +8,41 @@ def rotate_string_right(s, n=1):
     n %= len(s)
     return s[-n:] + s[:-n]
 
+def mirror_swap_bytearray(data: bytearray) -> bytearray:
+    """
+    Cuts a bytearray in half, swaps bytes across a mirror to other half
+     before it swaps the two halves.
+
+    Args:
+        data: The bytearray to split and swap.
+
+    Returns:
+        A new bytearray with the mirrored halves swapped.
+        If the bytearray has an odd length, the middle byte
+        will be part of the first half after the split.
+    """
+    length = len(data)
+    midpoint = length // 2  # Integer division for the midpoint
+
+    # Slice the bytearray into two halves
+    first_half = data[:midpoint]
+    second_half = data[midpoint:]
+
+    # Assuming first_half and second_half are bytes objects
+    first_half_mutable = bytearray(first_half)
+    second_half_mutable = bytearray(second_half)
+
+    length_each = len(first_half)
+    # Mirror swap
+    for i in range(length_each):
+        # Perform the swap using the mutable bytearray objects
+        first_half_mutable[i], second_half_mutable[length_each-i-1] = second_half_mutable[length_each-i-1], first_half_mutable[i]
+
+    first_half = bytes(first_half_mutable)
+    second_half = bytes(second_half_mutable)
+    swapped_data = second_half + first_half
+    return swapped_data
+
 def split_and_swap_bytearray(data: bytearray) -> bytearray:
     """
     Cuts a bytearray in half and swaps the two halves.
