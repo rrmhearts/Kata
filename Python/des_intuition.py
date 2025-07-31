@@ -1,6 +1,7 @@
 
 from itertools import cycle
 from rotate_string import rotate_string_left, split_and_swap_bytearray, mirror_swap_bytearray
+import random
 
 def shuffle_bits_in_byte(byte_val, permutation):
     if permutation is None:
@@ -41,23 +42,40 @@ def des_like(message, key):
     return bytes(shuffle_bits_in_byte(byte, permutation=None) for byte in message)
 
 def encrypt(message, key):
-    # Needs to be even length
-    if len(message) % 2 != 0:
-        message+=b'_'
+    # Add Salt
+    random_bytes = random.randbytes(len(message))
+    message = xor_bytes(message, random_bytes) + random_bytes
     return des_like(message, key)
 
-def decrypt(message, key):
-    plaintext = des_like(message,key)
+def decrypt(ciphertext, key):
+    plaintext = des_like(ciphertext, key)
+    # Remove Salt, must be whole number
+    half_n = int(len(plaintext)/2)
+    plaintext = xor_bytes(plaintext[0:half_n], plaintext[half_n:])
     # If it was made even, remove last character _
-    return plaintext[:-1] if plaintext[-1] == ord('_') else plaintext
+    return plaintext #[:-1] if plaintext[-1] == ord('_') else plaintext
         
 def xor_bytes(byte_str1, byte_str2):
      # Simplest concept of DES
      # Requires both strings to be the same length
      return bytes(a ^ b for a, b in zip(byte_str1, byte_str2))
 
+def simple_encrypt(message, key):
+    random_bytes = random.randbytes(len(message))
+    message = xor_bytes(message, random_bytes) + random_bytes
+    zipped = zip(message, cycle(key)) if len(message) > len(key) else zip(cycle(message), key)
+    # XOR the message with the secret key
+    return bytes(a ^ b for a, b in zipped)
+
+def simple_decrypt(ciphertext, key):
+    zipped = zip(ciphertext, cycle(key)) if len(message) > len(key) else zip(cycle(message), key)
+    message_salt = bytes(a ^ b for a, b in zipped)
+    half_n = int(len(message_salt)/2)
+    return xor_bytes(message_salt[0:half_n], message_salt[half_n:])
+
+
 message = b'We have a secret to tell you: hello world.'
-key =     b'secret key'
+key =     b'secret'
 
 encoding = encrypt(message, key)
 decoded = decrypt(encoding, key)
@@ -65,3 +83,8 @@ print("Original message:", message)
 print("Secret key: ", key)
 print("Encoded message: ", encoding)
 print("Decoded message: ", decoded)
+
+simple_enc = simple_encrypt(message, key)
+simple_dec = simple_decrypt(simple_enc, key)
+print("Simple Encoded message: ", simple_enc)
+print("Simple Decoded message: ", simple_dec)
