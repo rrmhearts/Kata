@@ -1,4 +1,4 @@
-# Kata
+# Collection of Kata and Other Small Programs
 
 Collection of computer science solutions solved by myself without resources. Projects are in the following languages:
 
