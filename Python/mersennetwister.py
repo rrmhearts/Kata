@@ -20,6 +20,7 @@ class MersenneTwister:
             self.state[cword] = ans.to_bytes(4, byteorder='big')
             # Now that the previous word is updated, update the current state
             self.next_word = nword
+            
     def next(self, n):
         ret = b''.join(self.state[b] for b in range(self.next_word, self.next_word+n))
         self.refresh(n)

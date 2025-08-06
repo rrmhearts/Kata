@@ -1,6 +1,7 @@
 .vscode/
 **/target/
 Cargo.lock
+temp*
 
 ##### Windows
 # Windows thumbnail cache files
