@@ -46,6 +46,7 @@ impl Summarizable for Book {
 // The main function is the entry point of the program.
 fn main() {
     // Create an instance of the Book struct
+    // Like a static method, no self parameter
     let my_book = Book::new(
         String::from("The Lord of the Rings"),
         String::from("J.R.R. Tolkien"),
@@ -53,6 +54,7 @@ fn main() {
     );
 
     // Call a method on the Book instance
+    // my_book is passed to display_info as &self
     my_book.display_info();
 
     // Call a method defined by the Summarizable trait
