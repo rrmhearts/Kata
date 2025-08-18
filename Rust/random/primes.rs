@@ -1,10 +1,10 @@
 
-struct Primes<u32> {
+struct Primes {
     data: Vec<u32>,
     size: usize
 }
 
-impl Primes<u32> {
+impl Primes {
 
     fn new() -> Self {
         Self {
@@ -13,14 +13,28 @@ impl Primes<u32> {
         }
     }
 
-    fn not_prime(&self, value: u32) -> bool {
+    fn is_prime(&self, value: u32) -> bool {
+        let largest_divisor = 
+            (value as f64).sqrt().ceil() as u32;
         for i in self.data.iter() {
-            // print!("{}, {}\n", value, i);
+            if *i > largest_divisor {
+                break
+            }
             if value % i == 0 {
-                return true;
+                return false;
             }
         }
-        false
+        return true;
+    }
+
+    fn next_after(&mut self, value: u32) -> u32 {
+        for _ in 1..value {
+            let latest = self.next();
+            if latest > value {
+                return latest
+            }
+        }
+        return 0;
     }
 
     fn next(&mut self) -> u32 {
@@ -29,10 +43,9 @@ impl Primes<u32> {
             return 2;
         }
         let mut counter: u32 = *self.data.last().unwrap();
-        // while counter 
         counter += if counter %2==0 {1} else {2};
-        while self.not_prime(counter) {
-            counter+=1;
+        while !self.is_prime(counter) {
+            counter+=2;
         }
         self.data.push(counter);
         self.size += 1;
@@ -47,4 +60,5 @@ fn main() {
     for _ in 1..20 {
         print!("Next: {}\n", st.next());
     }
+    print!("Next after 1,000,000: {}", st.next_after(1000000))
 }
