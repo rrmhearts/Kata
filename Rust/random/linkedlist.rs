@@ -50,6 +50,7 @@ impl<T> LinkedList<T> {
             for _ in 0..index - 1 {
                 current = current.next.as_mut().unwrap();
             }
+            // current --> new_node --> current.next
             new_node.next = current.next.take();
             current.next = Some(new_node);
         }
@@ -91,6 +92,7 @@ impl<T> LinkedList<T> {
             current = current?.next.as_ref();
         }
 
+        /// Returns a reference to the node data
         current.map(|node| &node.data)
     }
 
@@ -141,6 +143,7 @@ impl<T> LinkedList<T> {
 }
 
 /// Debug printing
+/// `println!("List: {:?}", list);` // [10, 15, 20]
 impl<T: fmt::Debug> fmt::Debug for LinkedList<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let values: Vec<_> = self.iter().collect();
@@ -150,6 +153,7 @@ impl<T: fmt::Debug> fmt::Debug for LinkedList<T> {
 
 /// Allow collecting from iterator
 impl<T> FromIterator<T> for LinkedList<T> {
+    // Create a linked list from an iterator
     fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
         let mut list = LinkedList::new();
         for item in iter {
