@@ -1,0 +1,12 @@
+[package]
+name = "tsp_solver"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+pyo3 = { version = "0.20", features = ["extension-module"] }
+itertools = "0.12"
+
+[lib]
+name = "tsp_solver"
+crate-type = ["cdylib"]
