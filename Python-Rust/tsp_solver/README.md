@@ -7,4 +7,7 @@ This will install tsp_solver as a Python module.
 ```bash
 pip install maturin
 maturin develop --release
+
+cargo build
+python gui_tsp.py
 ```

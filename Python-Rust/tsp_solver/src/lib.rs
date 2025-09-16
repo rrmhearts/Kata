@@ -2,6 +2,80 @@
 
 use pyo3::prelude::*;
 use itertools::Itertools;
+use std::f64::INFINITY;
+
+mod heuristic;           // declare the file as a module
+
+use heuristic::solve_tsp_heuristic; // bring the function into scope
+
+/// Solves the Traveling Salesman Problem (TSP) using Held-Karp DP (bitmasking).
+/// cities: slice of (x, y) coordinates
+/// returns: (best_path as Vec of indices, best_distance)
+pub fn solve_tsp_Held_Karp(cities: &[(f64, f64)]) -> (Vec<usize>, f64) {
+    let n = cities.len();
+    if n == 0 {
+        return (vec![], 0.0);
+    }
+
+    // Precompute distances
+    let mut dist = vec![vec![0.0; n]; n];
+    for i in 0..n {
+        for j in 0..n {
+            let dx = cities[i].0 - cities[j].0;
+            let dy = cities[i].1 - cities[j].1;
+            dist[i][j] = (dx * dx + dy * dy).sqrt();
+        }
+    }
+
+    // dp[mask][i] = shortest path to visit set mask, ending at city i
+    let size = 1 << n;
+    let mut dp = vec![vec![INFINITY; n]; size];
+    let mut parent = vec![vec![None; n]; size];
+
+    dp[1][0] = 0.0; // Start at city 0
+
+    for mask in 1..size {
+        for u in 0..n {
+            if mask & (1 << u) == 0 { continue; }
+            let prev_mask = mask ^ (1 << u);
+            if prev_mask == 0 { continue; }
+            for v in 0..n {
+                if prev_mask & (1 << v) == 0 { continue; }
+                let new_dist = dp[prev_mask][v] + dist[v][u];
+                if new_dist < dp[mask][u] {
+                    dp[mask][u] = new_dist;
+                    parent[mask][u] = Some(v);
+                }
+            }
+        }
+    }
+
+    // Find best cycle returning to 0
+    let mut best_cost = INFINITY;
+    let mut last = 0;
+    for i in 1..n {
+        let cost = dp[size - 1][i] + dist[i][0];
+        if cost < best_cost {
+            best_cost = cost;
+            last = i;
+        }
+    }
+
+    // Reconstruct path
+    let mut path = Vec::with_capacity(n + 1);
+    let mut mask = size - 1;
+    let mut u = last;
+    while let Some(p) = parent[mask][u] {
+        path.push(u);
+        mask ^= 1 << u;
+        u = p;
+    }
+    path.push(0);
+    path.reverse();
+    path.push(0); // return to start
+
+    (path, best_cost)
+}
 
 /// Brute-force TSP solver: returns the shortest path order and its distance
 // internal pure Rust solver (doesn't depend on PyO3)
@@ -39,7 +113,9 @@ fn solve_tsp_rust(cities: &[(f64, f64)]) -> (Vec<usize>, f64) {
 // Python wrapper
 #[pyfunction]
 fn solve_tsp(cities: Vec<(f64, f64)>) -> PyResult<(Vec<usize>, f64)> {
-    Ok(solve_tsp_rust(&cities))
+    // Ok(solve_tsp_rust(&cities))
+    // Ok(solve_tsp_Held_Karp(&cities))
+    Ok(solve_tsp_heuristic(&cities))
 }
 
 /// Python module definition
