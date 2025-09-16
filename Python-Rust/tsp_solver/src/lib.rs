@@ -11,7 +11,7 @@ use heuristic::solve_tsp_heuristic; // bring the function into scope
 /// Solves the Traveling Salesman Problem (TSP) using Held-Karp DP (bitmasking).
 /// cities: slice of (x, y) coordinates
 /// returns: (best_path as Vec of indices, best_distance)
-pub fn solve_tsp_Held_Karp(cities: &[(f64, f64)]) -> (Vec<usize>, f64) {
+pub fn solve_tsp_held_karp(cities: &[(f64, f64)]) -> (Vec<usize>, f64) {
     let n = cities.len();
     if n == 0 {
         return (vec![], 0.0);
@@ -114,7 +114,7 @@ fn solve_tsp_rust(cities: &[(f64, f64)]) -> (Vec<usize>, f64) {
 #[pyfunction]
 fn solve_tsp(cities: Vec<(f64, f64)>) -> PyResult<(Vec<usize>, f64)> {
     // Ok(solve_tsp_rust(&cities))
-    // Ok(solve_tsp_Held_Karp(&cities))
+    // Ok(solve_tsp_held_karp(&cities))
     Ok(solve_tsp_heuristic(&cities))
 }
 

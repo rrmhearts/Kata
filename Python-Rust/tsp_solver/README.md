@@ -6,8 +6,8 @@ This will install tsp_solver as a Python module.
 
 ```bash
 pip install maturin
+# This is required to update the Python-Rust binary
 maturin develop --release
 
-cargo build
 python gui_tsp.py
 ```

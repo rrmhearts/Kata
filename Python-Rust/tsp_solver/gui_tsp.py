@@ -1,15 +1,25 @@
+import sys
+import random
+
 import tkinter as tk
 from tkinter import messagebox
-import random
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
 import tsp_solver  # Rust module we built
 
-NUM_CITIES = 10
+NUM_CITIES = 100
 cities = [(random.uniform(0, 10), random.uniform(0, 10)) for _ in range(NUM_CITIES)]
 
 root = tk.Tk()
 root.title("Travelling Salesman Problem (Rust + Python GUI)")
+
+# Handle window close event
+# def on_close():
+#     root.destroy()
+#     sys.exit()   # <- ensures Python process ends
+
+# root.protocol("WM_DELETE_WINDOW", on_close)
 
 fig, ax = plt.subplots(figsize=(5, 5))
 canvas = FigureCanvasTkAgg(fig, master=root)
