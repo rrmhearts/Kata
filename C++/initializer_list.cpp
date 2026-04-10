@@ -40,6 +40,18 @@ int main() {
     for (int x : {1, 2, 3}) {
         std::cout << x << " ";
     }
+    std::cout << std::endl;
+
+    // Using initializer list to initialize a vector
+    std::vector<int> vec = {100, 200, 300};
+
+    // wat
+    std::vector<int> vec2(3, 42); // Initializes a vector of size 3 with all elements as 42
+    for (int x : vec2) {
+        std::cout << x << " ";
+    }
+    std::cout << std::endl;
+
 
     return 0;
 }
