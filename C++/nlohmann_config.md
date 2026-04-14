@@ -53,7 +53,7 @@ int main() {
 
 For a large config file, the fastest workflow is:
 
-1. **Paste your JSON into an AI** (like me) and ask it to generate the structs and macros — this is by far the quickest approach for large configs
+1. Write a script **OR** paste your JSON into an AI and ask it to generate the structs and macros — this is by far the quickest approach for large configs
 2. The field names in the macro **must exactly match the JSON keys** (case-sensitive)
 3. If a JSON key uses `snake_case` or `camelCase`, your struct member must match it exactly
 4. Any **optional fields** should use `std::optional<T>` and switch to `NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT` instead, which fills in defaults rather than throwing on missing keys:
@@ -61,5 +61,3 @@ For a large config file, the fastest workflow is:
 ```cpp
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Database, host, port, name)
 ```
-
-Just paste your config JSON here and I can generate all the structs and macros for you instantly.
