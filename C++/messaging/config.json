@@ -1,0 +1,5 @@
+{
+    "pub_endpoint": "tcp://*:5555",
+    "sub_endpoint": "tcp://localhost:5555",
+    "update_interval_ms": 1000
+  }
