@@ -1,0 +1,35 @@
+{
+    "exercise_id": 42,
+    "entities": [
+      {
+        "site_id": 1,
+        "app_id": 1,
+        "entity_num": 100,
+        "type": "PLANE",
+        "x": 0.0,
+        "y": 50.0,
+        "vx": 10.0,
+        "vy": 0.0
+      },
+      {
+        "site_id": 1,
+        "app_id": 1,
+        "entity_num": 101,
+        "type": "SAM",
+        "x": 100.0,
+        "y": 0.0,
+        "vx": 0.0,
+        "vy": 0.0
+      },
+      {
+        "site_id": 2,
+        "app_id": 5,
+        "entity_num": 200,
+        "type": "MISSILE",
+        "x": 100.0,
+        "y": 0.0,
+        "vx": -5.0,
+        "vy": 10.0
+      }
+    ]
+  }
