@@ -12,22 +12,23 @@ enum Command {
 mod my_module {
     use super::Command;
 
-    pub fn transformer(input: Vec<(String,Command)>) -> Vec<String> {
-
-        let mut ret = Vec::<String>::new();
-
-        for x in input.iter() {
-            let (string, command) = x;
-            //let mut string = string;
-            let string = match command {
-                Command::Uppercase => string.to_uppercase(),
-                Command::Trim => string.trim().to_string(),
-                Command::Append(sz) => string.to_string() + &"bar".repeat(*sz)
-            };
-
-            ret.push(string)
-        }
-        ret
+    pub fn transformer(input: Vec<(String, Command)>) -> Vec<String> {
+        input
+            .into_iter()
+            .map(|(mut string, command)| {
+                match command {
+                    Command::Uppercase => string.to_uppercase(),
+                    Command::Trim => string.trim().to_string(),
+                    Command::Append(sz) => {
+                        // Efficiently mutate the existing String allocation in-place
+                        for _ in 0..sz {
+                            string.push_str("bar");
+                        }
+                        string
+                    }
+                }
+            })
+            .collect()
     }
 }
 
