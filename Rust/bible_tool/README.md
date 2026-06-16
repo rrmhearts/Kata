@@ -1,5 +1,6 @@
 # Bible Search Tool
 
+**This project has moved to** [rrmhearts/bible-search](https://github.com/rrmhearts/bible-search) **!**
 This project is for searching and looking up verses with synonyms and other features that are not available in most public Bible search websites. The goal is progressive growth and practicing Rust language for terminal applications. Currently, this repository includes an English Revised Version (ERV) Bible because of its public access. Hope to extend functionality to more versions in the future.
 
 ## Command Line Usage
