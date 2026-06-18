@@ -6,6 +6,16 @@
 class PhysicsWorld {
 private:
     std::vector<PhysicsSphere*> spheres;
+    float friction = 1.0f;
+    bool onTheFloor = false;
+
+    // Define the limits of your box
+    const float BOUNDARY_LEFT   = -10.0f;
+    const float BOUNDARY_RIGHT  =  10.0f;
+    const float BOUNDARY_BOTTOM = -5.0f; // The Floor
+    const float BOUNDARY_TOP    =  10.0f; // The Ceiling
+    const float BOUNDARY_BACK   = -10.0f;
+    const float BOUNDARY_FRONT  =  10.0f;
 
 public:
     void addSphere(PhysicsSphere* sphere) {
@@ -13,12 +23,24 @@ public:
     }
 
     void step(float dt) {
-        // 1. Update all positions
+        // 1. Update positions
         for (auto& sphere : spheres) {
+            // check out frictional force
+            if (sphere->position.y - sphere->radius <= BOUNDARY_BOTTOM) {
+                if (onTheFloor) {
+                    sphere->velocity.x *= exp(-friction* dt); //(1-friction);
+                    // if (sphere->velocity.x < .000000001) sphere->velocity.x = 0;
+                }
+                else onTheFloor = sphere->position.y - sphere->radius <= BOUNDARY_BOTTOM;
+            } else onTheFloor = false;
+
             sphere->update(dt);
+            
+            // Check boundaries immediately after updating position
+            checkBoundaries(*sphere); 
         }
 
-        // 2. Check for collisions (brute force approach for simplicity)
+        // 2. Check for sphere-to-sphere collisions
         for (size_t i = 0; i < spheres.size(); ++i) {
             for (size_t j = i + 1; j < spheres.size(); ++j) {
                 checkCollision(*spheres[i], *spheres[j]);
@@ -27,6 +49,42 @@ public:
     }
 
 private:
+    // Function to handle bouncing off the walls and floor
+    void checkBoundaries(PhysicsSphere& sphere) {
+        // Floor (Bottom Y boundary)
+        if (sphere.position.y - sphere.radius < BOUNDARY_BOTTOM) {
+            sphere.position.y = BOUNDARY_BOTTOM + sphere.radius; // Push out of the floor
+            sphere.velocity.y *= -sphere.restitution;            // Reverse and dampen velocity
+        }
+        // Ceiling (Top Y boundary)
+        else if (sphere.position.y + sphere.radius > BOUNDARY_TOP) {
+            sphere.position.y = BOUNDARY_TOP - sphere.radius;
+            sphere.velocity.y *= -sphere.restitution;
+        }
+
+        // Left Wall (Negative X boundary)
+        if (sphere.position.x - sphere.radius < BOUNDARY_LEFT) {
+            sphere.position.x = BOUNDARY_LEFT + sphere.radius;
+            sphere.velocity.x *= -sphere.restitution;
+        }
+        // Right Wall (Positive X boundary)
+        else if (sphere.position.x + sphere.radius > BOUNDARY_RIGHT) {
+            sphere.position.x = BOUNDARY_RIGHT - sphere.radius;
+            sphere.velocity.x *= -sphere.restitution;
+        }
+
+        // Back Wall (Negative Z boundary)
+        if (sphere.position.z - sphere.radius < BOUNDARY_BACK) {
+            sphere.position.z = BOUNDARY_BACK + sphere.radius;
+            sphere.velocity.z *= -sphere.restitution;
+        }
+        // Front Wall (Positive Z boundary)
+        else if (sphere.position.z + sphere.radius > BOUNDARY_FRONT) {
+            sphere.position.z = BOUNDARY_FRONT - sphere.radius;
+            sphere.velocity.z *= -sphere.restitution;
+        }
+    }
+
     void checkCollision(PhysicsSphere& a, PhysicsSphere& b) {
         // Calculate the vector between the two centers
         glm::vec3 collisionVector = b.position - a.position;

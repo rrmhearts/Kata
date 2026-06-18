@@ -43,12 +43,16 @@ int main() {
     // Blue Sphere (larger and heavier)
     PhysicsSphere sphere2(glm::vec3(5.0f, 0.0f, 0.0f), 1.5f, 4.0f, 0.8f, glm::vec3(0.2f, 0.3f, 1.0f));
 
+    PhysicsSphere sphere3(glm::vec3(0.0f, 2.0f, 0.0f), 1.0f, 3.0f, 0.8f, glm::vec3(0.5f, 1.0f, 0.1f));
+
     // Send them on a collision course
     sphere1.velocity = glm::vec3(4.0f, 0.0f, 0.0f);
     sphere2.velocity = glm::vec3(-2.0f, 0.0f, 0.0f);
+    sphere3.velocity = glm::vec3(5.0f, 0.0f, 0.0f);
 
     world.addSphere(&sphere1);
     world.addSphere(&sphere2);
+    world.addSphere(&sphere3);
 
     // Camera setup
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -69,6 +73,14 @@ int main() {
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, true);
 
+        // v key makes the sim go longer
+        if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS) {
+            sphere1.velocity *= 1.01;
+            sphere2.velocity *= 1.01;
+            sphere3.velocity *= 1.01;
+        }
+
+
         // Update Physics (Passing dynamic frame time ensures smooth movement)
         world.step(frameTime);
 
@@ -79,6 +91,7 @@ int main() {
         // Draw spheres
         renderer.draw(sphere1.position, sphere1.radius, sphere1.color, view, projection);
         renderer.draw(sphere2.position, sphere2.radius, sphere2.color, view, projection);
+        renderer.draw(sphere3.position, sphere3.radius, sphere3.color, view, projection);
 
         // Swap buffers and poll IO events
         glfwSwapBuffers(window);
